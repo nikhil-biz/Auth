@@ -2,6 +2,8 @@ package com.bizdigitalit.Auth.model;
 
 import jakarta.persistence.*;
 
+import java.util.Set;
+
 @Entity
 @Table(name = "user")
 public class User {
@@ -10,6 +12,10 @@ public class User {
     private Long id;
     private String email;
     private String password;
+
+    @OneToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
+    private Set<Role> roles;
 
     public Long getId() {
         return id;
@@ -33,5 +39,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 }

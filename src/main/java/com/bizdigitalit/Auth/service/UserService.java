@@ -1,13 +1,15 @@
 package com.bizdigitalit.Auth.service;
 
+import com.bizdigitalit.Auth.dto.SignInRequest;
 import com.bizdigitalit.Auth.dto.UserDtoMapper;
-import com.bizdigitalit.Auth.dto.UserDto;
+import com.bizdigitalit.Auth.dto.SignupRequest;
 import com.bizdigitalit.Auth.exception.UserNotFoundException;
 import com.bizdigitalit.Auth.model.User;
 import com.bizdigitalit.Auth.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +33,7 @@ public class UserService {
         this.jwtService = jwtService;
     }
 
-    public String addUser(UserDto userDto) {
+    public String addUser(SignupRequest userDto) {
         if(userRepository.existsByEmail(userDto.getEmail())){
             return " User is already present in db!";
         }
@@ -41,20 +43,24 @@ public class UserService {
     }
 
 
-    public String signInUser(UserDto userSignInDto) {
+    public String signInUser(SignInRequest userSignInDto) {
         Authentication authentication =
                 authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userSignInDto.getEmail(),userSignInDto.getPassword()));
-        return authentication.isAuthenticated() ? jwtService.generateToken(userSignInDto) : " authentication failed!";
+        if(authentication.isAuthenticated()){
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            return jwtService.generateToken(userDetails);
+        }
+        return "Authentication failed";
     }
 
-    public List<UserDto> getAllUsers() {
+    public List<SignupRequest> getAllUsers() {
         List<User> users = userRepository.findAll();
         return users.stream()
                 .map(user -> userDtoMapper.toDto(user))
                 .collect(Collectors.toList());
     }
 
-    public UserDto getUserByEmail(String email) throws UserNotFoundException {
+    public SignupRequest getUserByEmail(String email) throws UserNotFoundException {
         if(!userRepository.existsByEmail(email)){
             throw new UserNotFoundException("User not found with email "+email);
         }

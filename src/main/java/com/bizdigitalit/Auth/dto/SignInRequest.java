@@ -1,6 +1,6 @@
 package com.bizdigitalit.Auth.dto;
 
-public class UserDto {
+public class SignInRequest {
     private String email;
     private String password;
 

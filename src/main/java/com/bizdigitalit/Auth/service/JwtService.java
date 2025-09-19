@@ -1,11 +1,12 @@
 package com.bizdigitalit.Auth.service;
 
-import com.bizdigitalit.Auth.dto.UserDto;
+import com.bizdigitalit.Auth.dto.SignInRequest;
+import com.bizdigitalit.Auth.dto.SignupRequest;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -18,15 +19,25 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "mySuperSecretKeyZENITSUAGATSUMA1234567890SecureDem0NsLaYeriNfiNitYcasTLE";
+    private static String SECRET_KEY;
 
-    public String generateToken(UserDto userDto) {
+    public JwtService(@Value("${jwt.secret}") String secretKey){
+        SECRET_KEY = secretKey;
+    }
+
+    public String generateToken(UserDetails userDetails) {
 
         Map<String, Object> claims = new HashMap<>();
 
+        claims.put("roles", userDetails.getAuthorities()
+                .stream()
+                .map(Object::toString)
+                .toList());
+
         return Jwts
                 .builder()
-                .subject(userDto.getEmail())
+                .claims(claims)
+                .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis()+ 1000*60*60*24))
                 .signWith(getKey())
